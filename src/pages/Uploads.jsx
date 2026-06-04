@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import toast from "react-hot-toast";
 import API from "../api";
 import AppLayout from "../components/AppLayout";
 import Button from "../components/Button";
+import { TableEmptyState } from "../components/EmptyState";
 import Icon from "../components/Icon";
 import Pagination, { PAGE_SIZE } from "../components/Pagination";
 import StatusBadge from "../components/StatusBadge";
@@ -50,7 +52,7 @@ export default function Uploads() {
       try {
         await API.post("/upload", form);
       } catch {
-        alert(`Failed to upload ${file.name}`);
+        toast.error(`Failed to upload ${file.name}`);
       }
     }
     setUploading(false);
@@ -143,12 +145,7 @@ export default function Uploads() {
       </div>
 
       {rows.length === 0 ? (
-        <div className="table-card">
-          <div className="table-empty">
-            <Icon name="upload" size={36} style={{ color: "var(--ink-3)", marginBottom: 12 }} />
-            <p>No uploads yet</p>
-          </div>
-        </div>
+        <TableEmptyState icon="upload" message="No uploads yet" />
       ) : (
         <div className="table-card">
           <div className="upload-list">

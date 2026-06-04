@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import API from "../api";
 import Brand from "../components/Brand";
 import Button from "../components/Button";
@@ -25,7 +26,7 @@ export default function Login() {
           return;
         }
         await API.post("/auth/register", { email, password });
-        alert("Registration successful! Please login.");
+        toast.success("Registration successful! Please login.");
         setIsRegister(false);
         setEmail("");
         setPassword("");

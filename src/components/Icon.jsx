@@ -34,8 +34,10 @@ const paths = {
   ),
   insights: (
     <>
-      <path d="M12 3 2 20h20L12 3Z" />
-      <path d="M12 9v4" />
+      <path d="M4 19h16" />
+      <rect x="5" y="11" width="3.5" height="6" rx="1" />
+      <rect x="10.25" y="7" width="3.5" height="10" rx="1" />
+      <rect x="15.5" y="13" width="3.5" height="4" rx="1" />
     </>
   ),
   settings: (
@@ -63,9 +65,7 @@ const paths = {
       <path d="M4 20h16" />
     </>
   ),
-  wave: (
-    <path d="M2 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0" />
-  ),
+  wave: <path d="M4 12h2M8 8v8M12 5v14M16 8v8M20 12h-2" />,
   check: <path d="M20 6 9 17l-5-5" />,
   x: (
     <>
@@ -149,7 +149,7 @@ export default function Icon({ name, size = 18, className = "", style }) {
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
-      style={style}
+      style={{ flexShrink: 0, display: "block", ...style }}
       aria-hidden
     >
       {paths[name] || paths.dashboard}

@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 import API from "../api";
 import AppLayout from "../components/AppLayout";
 import Button from "../components/Button";
 import CellList from "../components/CellList";
 import Icon from "../components/Icon";
+import { PanelEmptyState, TableEmptyState } from "../components/EmptyState";
 import StatusBadge from "../components/StatusBadge";
 import { mapResultRow } from "../utils/parseAnalysis";
 
@@ -28,20 +31,19 @@ function StatCard({ label, value, accent, icon, sub }) {
 function InsightsPanel({ insights }) {
   if (!insights) {
     return (
-      <div className="table-empty" style={{ background: "var(--card)", borderRadius: "var(--r-card)", border: "1px solid var(--line-soft)" }}>
-        No insights yet — click &quot;Generate Insights&quot; then &quot;Load Insights&quot;
-      </div>
+      <PanelEmptyState
+        icon="insights"
+        message='No insights yet — click "Generate Insights" then "Load Insights"'
+      />
     );
   }
 
   if (insights.status === "processing") {
     return (
-      <div className="panel" style={{ padding: "56px 24px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-        <Icon name="loader" size={32} className="spin" style={{ color: "var(--violet)" }} />
-        <p style={{ color: "var(--ink-2)", margin: 0 }}>
-          Generating insights… please wait and click &quot;Load Insights&quot; again.
-        </p>
-      </div>
+      <PanelEmptyState
+        loading
+        message='Generating insights… please wait and click "Load Insights" again.'
+      />
     );
   }
 
@@ -99,9 +101,10 @@ function ResultsTable({ rows, onView, onDelete }) {
 
   if (!rows.length) {
     return (
-      <div className="table-card">
-        <div className="table-empty">No data yet — upload WAV files</div>
-      </div>
+      <TableEmptyState
+        icon="wave"
+        message="No data yet — upload WAV files to get started"
+      />
     );
   }
 
@@ -249,19 +252,37 @@ export default function Dashboard() {
   const rows = data.results.map(mapResultRow);
 
   const handleDelete = async (audioId) => {
-    if (!window.confirm("Delete this record?")) return;
-    await API.delete(`/data/${audioId}`);
-    fetchData();
+    const result = await Swal.fire({
+      title: "Delete this record?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#1B2B4B",
+      reverseButtons: true,
+      heightAuto: false,
+      scrollbarPadding: false,
+    });
+    if (!result.isConfirmed) return;
+    try {
+      await API.delete(`/data/${audioId}`);
+      toast.success("Record deleted");
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to delete record");
+    }
   };
 
   const handleGenerateInsights = async () => {
     setGenLoading(true);
     try {
       await API.post("/insights/generate");
-      alert("Insights generation started — check back in a moment.");
+      toast.success("Insights generation started — check back in a moment.");
       setTimeout(fetchInsights, 15000);
     } catch (err) {
-      alert(err.response?.data?.detail || "Error");
+      toast.error(err.response?.data?.detail || "Error");
     } finally {
       setGenLoading(false);
     }
