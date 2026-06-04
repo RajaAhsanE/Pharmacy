@@ -136,7 +136,7 @@ function ResultsTable({ rows, onView, onDelete }) {
                   </div>
                 </td>
                 <td>
-                  <span className="chip">{row.groupe}</span>
+                  <StatusBadge status={row.groupe} />
                 </td>
                 <td>
                   <StatusBadge status={row.status} />

@@ -1,8 +1,10 @@
+import Icon from "./Icon";
+
 const styles = {
-  done: { bg: "#D1FAE5", fg: "#065F46", dot: "#10B981", label: "SUCCESS" },
-  success: { bg: "#D1FAE5", fg: "#065F46", dot: "#10B981", label: "SUCCESS" },
-  error: { bg: "#FEE2E2", fg: "#991B1B", dot: "#EF4444", label: "FAILURE" },
-  failure: { bg: "#FEE2E2", fg: "#991B1B", dot: "#EF4444", label: "FAILURE" },
+  done: { bg: "#D1FAE5", fg: "#065F46", dot: "#10B981", label: "SUCCESS", icon: "check" },
+  success: { bg: "#D1FAE5", fg: "#065F46", dot: "#10B981", label: "SUCCESS", icon: "check" },
+  error: { bg: "#FEE2E2", fg: "#991B1B", dot: "#EF4444", label: "FAILURE", icon: "x" },
+  failure: { bg: "#FEE2E2", fg: "#991B1B", dot: "#EF4444", label: "FAILURE", icon: "x" },
   processing: { bg: "#FEF3C7", fg: "#92400E", dot: "#F59E0B", label: "PROCESSING" },
   pending: { bg: "#FEF3C7", fg: "#92400E", dot: "#F59E0B", label: "PROCESSING" },
 };
@@ -14,7 +16,11 @@ export default function StatusBadge({ status }) {
 
   return (
     <span className="badge" style={{ background: s.bg, color: s.fg }}>
-      <span className={`badge-dot${pulse ? " pulse" : ""}`} style={{ background: s.dot }} />
+      {s.icon ? (
+        <Icon name={s.icon} size={12} className="badge-icon" style={{ color: s.fg }} />
+      ) : (
+        <span className={`badge-dot${pulse ? " pulse" : ""}`} style={{ background: s.dot }} />
+      )}
       {s.label}
     </span>
   );

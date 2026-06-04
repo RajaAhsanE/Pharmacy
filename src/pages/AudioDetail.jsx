@@ -89,10 +89,17 @@ export default function AudioDetail() {
           <div className="hero-info">
             <div className="hero-titlerow">
               <h1>{data.pharmacy}</h1>
-              <StatusBadge status={data.status} />
             </div>
             <div className="hero-chips">
-              <span className="chip">{data.groupe}</span>
+              <div className="hero-chip-row">
+                <span className="hero-chip-label">Groupe</span>
+                <StatusBadge status={data.groupe} />
+              </div>
+              <div className="hero-chip-row">
+                <span className="hero-chip-label">Status</span>
+                <StatusBadge status={data.status} />
+                <span className="badge badge-soft">{data.status}</span>
+              </div>
             </div>
           </div>
         </div>
