@@ -9,7 +9,7 @@ import CellList from "../components/CellList";
 import Icon from "../components/Icon";
 import { PanelEmptyState, TableEmptyState } from "../components/EmptyState";
 import StatusBadge from "../components/StatusBadge";
-import { mapResultRow } from "../utils/parseAnalysis";
+import { getVisibleColumns, mapResultRow } from "../utils/parseAnalysis";
 
 const PAGE_SIZE = 10;
 
@@ -89,15 +89,22 @@ function InsightsPanel({ insights }) {
 }
 
 function ResultsTable({ rows, onView, onDelete }) {
+  const [groupTab, setGroupTab] = useState("SUCCESS");
   const [page, setPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+
+  const successRows = rows.filter((row) => row.groupe === "SUCCESS");
+  const failureRows = rows.filter((row) => row.groupe === "FAILURE");
+  const groupedRows = { SUCCESS: successRows, FAILURE: failureRows };
+  const filteredRows = groupedRows[groupTab];
+  const columns = getVisibleColumns(filteredRows);
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const slice = rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const slice = filteredRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const offset = (currentPage - 1) * PAGE_SIZE;
 
   useEffect(() => {
     setPage(1);
-  }, [rows.length]);
+  }, [groupTab, filteredRows.length]);
 
   if (!rows.length) {
     return (
@@ -109,111 +116,130 @@ function ResultsTable({ rows, onView, onDelete }) {
   }
 
   return (
-    <div className="table-card">
-      <div className="table-scroll">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th className="col-n">#</th>
-              <th>Pharmacy</th>
-              <th>Groupe</th>
-              <th>Status</th>
-              <th>Déclencheur</th>
-              <th>Points forts</th>
-              <th>Frictions</th>
-              <th>Suggestions</th>
-              <th className="col-actions">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {slice.map((row, i) => (
-              <tr key={row.id}>
-                <td className="col-n">{offset + i + 1}</td>
-                <td>
-                  <div className="ph-cell">
-                    <div className="ph-name">{row.pharmacy}</div>
-                    <div className="ph-id">{row.id.slice(0, 8)}…</div>
-                  </div>
-                </td>
-                <td>
-                  <StatusBadge status={row.groupe} />
-                </td>
-                <td>
-                  <StatusBadge status={row.status} />
-                </td>
-                <td>
-                  <CellList items={row.analysis?.trigger} />
-                </td>
-                <td>
-                  <CellList items={row.analysis?.strengths} />
-                </td>
-                <td>
-                  <CellList items={row.analysis?.frictions} />
-                </td>
-                <td>
-                  <CellList items={row.analysis?.suggestions} />
-                </td>
-                <td className="col-actions">
-                  <div className="row-actions">
-                    <button
-                      type="button"
-                      className="icon-btn view"
-                      title="View details"
-                      onClick={() => onView(row.id)}
-                    >
-                      <Icon name="eye" size={17} />
-                    </button>
-                    <button
-                      type="button"
-                      className="icon-btn danger"
-                      title="Delete"
-                      onClick={() => onDelete(row.id)}
-                    >
-                      <Icon name="trash" size={17} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <>
+      <div className="tabs tabs-group">
+        <button
+          type="button"
+          className={`tab${groupTab === "SUCCESS" ? " active" : ""}`}
+          onClick={() => setGroupTab("SUCCESS")}
+        >
+          <Icon name="check" size={17} />
+          Success
+          <span className="tab-count">{successRows.length}</span>
+        </button>
+        <button
+          type="button"
+          className={`tab${groupTab === "FAILURE" ? " active" : ""}`}
+          onClick={() => setGroupTab("FAILURE")}
+        >
+          <Icon name="x" size={17} />
+          Failure
+          <span className="tab-count">{failureRows.length}</span>
+        </button>
       </div>
-      {totalPages > 1 && (
-        <div className="pagination">
-          <span className="pag-info">
-            Showing {offset + 1}–{Math.min(offset + PAGE_SIZE, rows.length)} of {rows.length}
-          </span>
-          <div className="pag-controls">
-            <button
-              type="button"
-              className="pag-btn"
-              disabled={currentPage <= 1}
-              onClick={() => setPage((p) => p - 1)}
-            >
-              ‹
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-              <button
-                key={n}
-                type="button"
-                className={`pag-btn${n === currentPage ? " pag-active" : ""}`}
-                onClick={() => setPage(n)}
-              >
-                {n}
-              </button>
-            ))}
-            <button
-              type="button"
-              className="pag-btn"
-              disabled={currentPage >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              ›
-            </button>
+
+      {!filteredRows.length ? (
+        <TableEmptyState
+          icon="wave"
+          message={`No ${groupTab === "SUCCESS" ? "success" : "failure"} records yet`}
+        />
+      ) : (
+        <div className="table-card">
+          <div className="table-scroll">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th className="col-n">#</th>
+                  <th>Pharmacy</th>
+                  <th>Status</th>
+                  {columns.map((col) => (
+                    <th key={col}>{col}</th>
+                  ))}
+                  <th className="col-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {slice.map((row, i) => (
+                  <tr key={row.id}>
+                    <td className="col-n">{offset + i + 1}</td>
+                    <td>
+                      <div className="ph-cell">
+                        <div className="ph-name">{row.pharmacy}</div>
+                        <div className="ph-id">{row.id.slice(0, 8)}…</div>
+                      </div>
+                    </td>
+                    <td>
+                      <StatusBadge status={row.status} />
+                    </td>
+                    {columns.map((col) => (
+                      <td key={col}>
+                        <CellList items={row.analysisColumns?.[col]} />
+                      </td>
+                    ))}
+                    <td className="col-actions">
+                      <div className="row-actions">
+                        <button
+                          type="button"
+                          className="icon-btn view"
+                          title="View details"
+                          onClick={() => onView(row.id)}
+                        >
+                          <Icon name="eye" size={17} />
+                        </button>
+                        <button
+                          type="button"
+                          className="icon-btn danger"
+                          title="Delete"
+                          onClick={() => onDelete(row.id)}
+                        >
+                          <Icon name="trash" size={17} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+          {totalPages > 1 && (
+            <div className="pagination">
+              <span className="pag-info">
+                Showing {offset + 1}–{Math.min(offset + PAGE_SIZE, filteredRows.length)} of{" "}
+                {filteredRows.length}
+              </span>
+              <div className="pag-controls">
+                <button
+                  type="button"
+                  className="pag-btn"
+                  disabled={currentPage <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                >
+                  ‹
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={`pag-btn${n === currentPage ? " pag-active" : ""}`}
+                    onClick={() => setPage(n)}
+                  >
+                    {n}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="pag-btn"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  ›
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
-    </div>
+    </>
   );
 }
 

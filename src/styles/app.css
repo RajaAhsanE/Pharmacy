@@ -22,6 +22,7 @@
 html.swal2-shown,html.swal2-height-auto,body.swal2-shown,body.swal2-height-auto{height:100%!important;overflow:hidden!important}
 body.swal2-shown #root{height:100%!important}
 .badge-icon{flex-shrink:0}
+.tabs-group{margin-bottom:18px;margin-top:-4px}
 .hero-chips{display:flex;flex-wrap:wrap;gap:20px;margin-top:10px}
 .hero-chip-row{align-items:center;display:flex;flex-wrap:wrap;gap:8px}
 .hero-chip-label{color:var(--ink-3);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}

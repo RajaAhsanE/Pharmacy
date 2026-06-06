@@ -5,14 +5,29 @@ import AppLayout from "../components/AppLayout";
 import Button from "../components/Button";
 import Icon from "../components/Icon";
 import StatusBadge from "../components/StatusBadge";
-import { mapDetailAnalysis } from "../utils/parseAnalysis";
+import { mapDetailSections } from "../utils/parseAnalysis";
 
-const ANALYSIS_CARDS = [
-  { key: "trigger", title: "Déclencheur / Usage", icon: "target", color: "#6C47FF" },
-  { key: "strengths", title: "Points forts / Aha moment", icon: "bulb", color: "#22C55E" },
-  { key: "frictions", title: "Frictions rencontrées", icon: "alert", color: "#EF4444" },
-  { key: "suggestions", title: "Suggestions d'amélioration", icon: "sparkles", color: "#F59E0B" },
+const SECTION_STYLES = {
+  "Déclencheur / Usage": { icon: "target", color: "#6C47FF" },
+  "Points forts / Aha moment": { icon: "bulb", color: "#22C55E" },
+  "Frictions rencontrées": { icon: "alert", color: "#EF4444" },
+  "Suggestions d'amélioration": { icon: "sparkles", color: "#F59E0B" },
+  "Contexte 1ère commande": { icon: "target", color: "#6C47FF" },
+  "Expérience de bout en bout": { icon: "bulb", color: "#22C55E" },
+  "Raisons du retour aux habitudes": { icon: "alert", color: "#EF4444" },
+  "Conditions de retour / Suggestions": { icon: "sparkles", color: "#F59E0B" },
+};
+
+const SECTION_PALETTE = [
+  { icon: "target", color: "#6C47FF" },
+  { icon: "bulb", color: "#22C55E" },
+  { icon: "alert", color: "#EF4444" },
+  { icon: "sparkles", color: "#F59E0B" },
 ];
+
+function getSectionStyle(title, index) {
+  return SECTION_STYLES[title] || SECTION_PALETTE[index % SECTION_PALETTE.length];
+}
 
 export default function AudioDetail() {
   const { audio_id } = useParams();
@@ -65,14 +80,14 @@ export default function AudioDetail() {
     );
   }
 
-  const analysis = mapDetailAnalysis(data);
+  const sections = mapDetailSections(data);
   const uploaded = data.uploaded_at
     ? new Date(data.uploaded_at).toLocaleString("fr-FR")
     : "—";
   const processed = data.processed_at
     ? new Date(data.processed_at).toLocaleString("fr-FR")
     : "—";
-  const ready = data.status === "done" && analysis;
+  const ready = data.status === "done" && sections.length > 0;
 
   return (
     <AppLayout crumbs={["Workspace", "Dashboard", data.pharmacy]}>
@@ -135,36 +150,39 @@ export default function AudioDetail() {
             Analysis
           </div>
           <div className="analysis-grid">
-            {ANALYSIS_CARDS.map((card) => {
-              const items = analysis[card.key] || [];
+            {sections.map((section, index) => {
+              const style = getSectionStyle(section.title, index);
               return (
-                <div key={card.key} className="analysis-card">
-                  <div className="ac-strip" style={{ background: card.color }} />
+                <div key={section.title} className="analysis-card">
+                  <div className="ac-strip" style={{ background: style.color }} />
                   <div className="ac-head">
                     <span
                       className="ac-icon"
-                      style={{ background: `${card.color}1a`, color: card.color }}
+                      style={{ background: `${style.color}1a`, color: style.color }}
                     >
-                      <Icon name={card.icon} size={18} />
+                      <Icon name={style.icon} size={18} />
                     </span>
-                    <h3>{card.title}</h3>
-                    <span className="ac-count">{items.length}</span>
+                    <h3>{section.title}</h3>
+                    <span className="ac-count">{section.items.length}</span>
                   </div>
-                  <ul
-                    className="ac-list"
-                    style={{ "--marker": card.color }}
-                  >
-                    {items.length ? (
-                      items.map((item, i) => <li key={i}>{item}</li>)
-                    ) : (
-                      <li>—</li>
-                    )}
+                  <ul className="ac-list" style={{ "--marker": style.color }}>
+                    {section.items.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
                   </ul>
                 </div>
               );
             })}
           </div>
         </>
+      ) : data.status === "done" ? (
+        <div className="empty-detail">
+          <div className="empty-icon proc">
+            <Icon name="wave" size={28} />
+          </div>
+          <h3>No analysis data</h3>
+          <p>This recording has no analysis content to display.</p>
+        </div>
       ) : (
         <div className="empty-detail">
           <div className={`empty-icon ${data.status === "error" ? "fail" : "proc"}`}>
