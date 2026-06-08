@@ -8,6 +8,7 @@ import Button from "../components/Button";
 import CellList from "../components/CellList";
 import Icon from "../components/Icon";
 import { PanelEmptyState, TableEmptyState } from "../components/EmptyState";
+import { CrossAnalysisTable, PriorityActionsTable } from "../components/InsightsTables";
 import StatusBadge from "../components/StatusBadge";
 import { getVisibleColumns, mapResultRow } from "../utils/parseAnalysis";
 
@@ -61,9 +62,7 @@ function InsightsPanel({ insights }) {
             </div>
           </div>
         </div>
-        <div className="panel-body">
-          <pre>{insights.analyse_croisee || "—"}</pre>
-        </div>
+        <CrossAnalysisTable text={insights.analyse_croisee} />
       </section>
       <section className="panel">
         <div className="panel-head">
@@ -77,11 +76,11 @@ function InsightsPanel({ insights }) {
             </div>
           </div>
         </div>
-        <div className="panel-body">
-          <pre>{insights.actions_prioritaires || "—"}</pre>
-        </div>
+        <PriorityActionsTable text={insights.actions_prioritaires} />
         {insights.generated_at && (
-          <div className="insights-foot">Generated: {insights.generated_at}</div>
+          <div className="insights-foot">
+            Generated {new Date(insights.generated_at).toLocaleString("fr-FR")}
+          </div>
         )}
       </section>
     </div>
